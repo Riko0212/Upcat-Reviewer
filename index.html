@@ -352,17 +352,76 @@
       display: flex; align-items: center; gap: 8px;
       font-size: .82rem; color: var(--text-muted); margin-bottom: 8px; flex-wrap: wrap;
     }
+    .pdf-viewer-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-shrink: 0; }
     .pdf-open-link {
-      margin-left: auto; color: var(--gold-soft); font-size: .8rem;
+      color: var(--gold-soft); font-size: .8rem;
       text-decoration: underline; white-space: nowrap;
     }
     .pdf-open-link:hover { color: var(--gold); }
+    .pdf-fullscreen-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: .78rem; font-weight: 600; color: var(--text-head);
+      background: rgba(111,207,115,0.12); border: 1px solid rgba(111,207,115,0.3);
+      border-radius: 999px; padding: 5px 11px; cursor: pointer;
+      transition: background 0.2s, transform 0.15s; white-space: nowrap;
+    }
+    .pdf-fullscreen-btn:hover { background: rgba(111,207,115,0.22); transform: translateY(-1px); }
     .pdf-frame {
       width: 100%; height: 520px; border: 1px solid var(--glass-border);
       border-radius: var(--radius-sm); background: rgba(0,0,0,.25);
       display: block;
     }
-    @media (max-width: 600px) { .pdf-frame { height: 380px; } }
+    @media (max-width: 600px) { .pdf-frame { height: 360px; } }
+
+    /* PDF FULLSCREEN OVERLAY */
+    .pdf-fs-overlay {
+      position: fixed; inset: 0; z-index: 400;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 24px;
+      background: rgba(5, 16, 10, 0.72);
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.28s ease;
+    }
+    .pdf-fs-overlay.visible { opacity: 1; pointer-events: auto; }
+    .pdf-fs-inner {
+      position: relative; width: 100%; max-width: 1100px;
+      height: 90vh;
+      background: linear-gradient(160deg, var(--bg-light) 0%, var(--bg-mid) 50%, var(--bg-deep) 100%);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      box-shadow: 0 32px 80px rgba(0,0,0,0.6);
+      display: flex; flex-direction: column; overflow: hidden;
+      transform: scale(0.96);
+      transition: transform 0.28s cubic-bezier(0.16,1,0.3,1);
+    }
+    .pdf-fs-overlay.visible .pdf-fs-inner { transform: scale(1); }
+    .pdf-fs-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 20px; border-bottom: 1px solid var(--glass-border);
+      flex-shrink: 0; gap: 12px;
+    }
+    .pdf-fs-title {
+      font-family: var(--font-display); font-size: 1rem;
+      color: var(--text-head); display: flex; align-items: center; gap: 8px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .pdf-fs-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .pdf-fs-open-link {
+      font-size: .8rem; color: var(--gold-soft); text-decoration: underline; white-space: nowrap;
+    }
+    .pdf-fs-open-link:hover { color: var(--gold); }
+    .pdf-fs-close-btn {
+      width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+      background: var(--glass-bg); border: 1px solid var(--glass-border);
+      color: var(--text-head); font-size: 1rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .pdf-fs-close-btn:hover { background: var(--glass-hover); transform: rotate(90deg); }
+    .pdf-fs-frame {
+      flex: 1; width: 100%; border: none; display: block; background: transparent;
+    }
 
     /* AI CONTENT STYLING — used by hardcoded content too */
     .ai-content {
@@ -450,6 +509,29 @@
       .subtopic-panel { transition: none; }
       .subtopic-item { transition: none; opacity: 1 !important; transform: none !important; }
     }
+    /* LINK-TYPE SUBTOPIC ROW (NotebookLM etc.) */
+.subtopic-link-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; padding: 14px 18px;
+  background: var(--glass-bg); border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  transition: background var(--t), border-color var(--t), transform var(--t);
+  cursor: pointer;
+}
+.subtopic-link-row:hover {
+  background: var(--glass-hover); border-color: var(--leaf);
+  transform: translateX(4px);
+}
+.subtopic-link-btn {
+  flex-shrink: 0; font-size: .78rem; font-weight: 600;
+  color: var(--text-head);
+  background: rgba(111,207,115,0.12); border: 1px solid rgba(111,207,115,0.3);
+  border-radius: 999px; padding: 5px 12px;
+  transition: background 0.2s;
+}
+.subtopic-link-row:hover .subtopic-link-btn {
+  background: rgba(111,207,115,0.25);
+}
   </style>
 </head>
 <body>
@@ -650,6 +732,45 @@
 
     <div class="divider"><span class="divider-line"></span><span class="divider-icon">🍂</span><span class="divider-line"></span></div>
 
+
+    <section id="notebooklm-section" class="category-section container" aria-labelledby="notebooklm-heading">
+  <div class="cat-header">
+    <span class="cat-icon">📓</span>
+    <div>
+      <p class="cat-eyebrow">AI Study Tool · Google NotebookLM</p>
+      <h2 id="notebooklm-heading" class="cat-title">NotebookLM Links</h2>
+    </div>
+  </div>
+  <div class="card-grid">
+    <button class="resource-card glass" type="button" data-topic="notebooklm_math">
+      <span class="card-icon">📐</span>
+      <h3 class="card-title">Mathematics</h3>
+      <p class="card-desc">NotebookLM notebooks for Math topics</p>
+      <span class="card-link">Open Topic →</span>
+    </button>
+    <button class="resource-card glass" type="button" data-topic="notebooklm_science">
+      <span class="card-icon">🔬</span>
+      <h3 class="card-title">Science</h3>
+      <p class="card-desc">NotebookLM notebooks for Science topics</p>
+      <span class="card-link">Open Topic →</span>
+    </button>
+    <button class="resource-card glass" type="button" data-topic="notebooklm_language">
+      <span class="card-icon">🔤</span>
+      <h3 class="card-title">Language Proficiency</h3>
+      <p class="card-desc">NotebookLM notebooks for English & Filipino</p>
+      <span class="card-link">Open Topic →</span>
+    </button>
+    <button class="resource-card glass" type="button" data-topic="notebooklm_reading">
+      <span class="card-icon">📖</span>
+      <h3 class="card-title">Reading Comprehension</h3>
+      <p class="card-desc">NotebookLM notebooks for Reading topics</p>
+      <span class="card-link">Open Topic →</span>
+    </button>
+  </div>
+</section>
+
+    <div class="divider"><span class="divider-line"></span><span class="divider-icon">🍂</span><span class="divider-line"></span></div>
+
     <!-- REVIEWERS IN GENERAL -->
     <section id="abstract-section" class="category-section container" aria-labelledby="abstract-heading">
       <div class="cat-header">
@@ -681,6 +802,20 @@
     </div>
   </footer>
 
+  <!-- PDF FULLSCREEN OVERLAY -->
+  <div class="pdf-fs-overlay" id="pdfFsOverlay">
+    <div class="pdf-fs-inner">
+      <div class="pdf-fs-bar">
+        <span class="pdf-fs-title" id="pdfFsTitle">📄 Notes</span>
+        <div class="pdf-fs-actions">
+          <a class="pdf-fs-open-link" id="pdfFsOpenLink" href="#" target="_blank" rel="noopener noreferrer">Open in new tab ↗</a>
+          <button class="pdf-fs-close-btn" id="pdfFsCloseBtn" type="button" aria-label="Exit fullscreen">✕</button>
+        </div>
+      </div>
+      <iframe class="pdf-fs-frame" id="pdfFsFrame" src="" title="PDF fullscreen viewer" loading="lazy"></iframe>
+    </div>
+  </div>
+
   <!-- SIDE PANEL -->
   <div class="panel-overlay" id="panelOverlay"></div>
   <aside class="subtopic-panel" id="subtopicPanel" aria-hidden="true" aria-labelledby="panelTitleText">
@@ -706,38 +841,122 @@
   <script>
     
 
-
 /* ══════════════════════════════════════════════════════════════
    PDF PATH HELPER
-   Each subtopic maps to a PDF file at:
-     pdfs/<topicKey>/<slugified-subtopic-name>.pdf
-   You can override any path by adding it to PDF_PATH_OVERRIDES below.
 ══════════════════════════════════════════════════════════════ */
 
-function slugify(str) {
-  return str
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, '')   // strip special chars
-    .trim()
-    .replace(/\s+/g, '-');            // spaces → hyphens
-}
+/* ── Add your Google Drive /preview links here ── */
+const PDF_PATH_OVERRIDES = {
+  "arithmetic::Order of Operations (PEMDAS)": "https://drive.google.com/file/d/1XPZctQn70jrQ1ms5M7zrfQtpj0WYsrkp/preview",
+};
 
+function slugify(str) {
+  return str.toLowerCase().replace(/[^a-z0-9\s-]/g,'').trim().replace(/\s+/g,'-');
+}
 function getPdfPath(topicKey, subtopicName) {
   const override = PDF_PATH_OVERRIDES[topicKey + '::' + subtopicName];
   if (override) return override;
   return `pdfs/${topicKey}/${slugify(subtopicName)}.pdf`;
 }
 
-/* ── Optional overrides: if a filename doesn't match the auto-slug,
-      add it here. e.g.:
-      "arithmetic::GCF and LCM": "pdfs/arithmetic/gcf-lcm.pdf"
-── */
-
-
     /* ══════════════════════════════════════════════════════════════
-       TOPIC DATA (structure only — PDFs are loaded per subtopic)
+       TOPIC DATA (structure only — PDFs loaded via PDF_PATH_OVERRIDES)
     ══════════════════════════════════════════════════════════════ */
     const topicData = {
+      notebooklm_math: {
+  icon: '📐', title: 'Mathematics — NotebookLM', eyebrow: 'NotebookLM · Math Notebooks',
+  notebookLm: 'https://notebooklm.google.com/',
+  type: 'links',
+  groups: [
+    { label: 'Arithmetic', items: [
+      { name: 'Arithmetic Notebook', url: 'https://notebooklm.google.com/notebook/YOUR_ID' },
+    ]},
+    { label: 'Algebra', items: [
+      { name: 'Algebra Notebook', url: 'https://notebooklm.google.com/notebook/YOUR_ID' },
+    ]},
+  ]
+},
+notebooklm_science: {
+  icon: '🔬', title: 'Science — NotebookLM', eyebrow: 'NotebookLM · Science Notebooks',
+  notebookLm: 'https://notebooklm.google.com/',
+  type: 'links',
+  groups: [
+    { label: 'Biology', items: [
+      { name: 'Cell Biology',  url: 'https://notebooklm.google.com/notebook/YOUR_ID' },
+      { name: 'Genetics',      url: 'https://notebooklm.google.com/notebook/YOUR_ID' },
+      { name: 'Microbiology',  url: 'https://notebooklm.google.com/notebook/YOUR_ID' },
+      { name: 'Ecology',       url: 'https://notebooklm.google.com/notebook/YOUR_ID' },
+      { name: 'Taxonomy',      url: 'https://notebooklm.google.com/notebook/YOUR_ID' },
+      { name: 'Human Biology', url: 'https://notebooklm.google.com/notebook/YOUR_ID' },
+    ]},
+    { label: 'Chemistry', items: [
+      { name: 'Units and Measurements', url: 'https://notebooklm.google.com/notebook/YOUR_ID' },
+      { name: 'Matter',      url: 'https://notebooklm.google.com/notebook/YOUR_ID' },
+      { name: 'Periodic Table',      url: 'https://notebooklm.google.com/notebook/YOUR_ID' },
+      { name: 'Stoichiometry',      url: 'https://notebooklm.google.com/notebook/YOUR_ID' },
+      { name: 'Organic Chemistry',      url: 'https://notebooklm.google.com/notebook/YOUR_ID' },
+
+
+    ]},
+    { label: 'Earth Science', items: [
+           { name: 'Earth Science',      url: 'https://notebooklm.google.com/notebook/YOUR_ID' },
+    ]},
+    { label: 'Astronomy', items: [
+      { name: 'Astronomy', url: 'https://notebooklm.google.com/notebook/YOUR_ID' },
+
+
+    ]},
+    { label: 'Physics', items: [
+      { name: 'One-Dimensional Motion', url: 'https://notebooklm.google.com/notebook/YOUR_ID' },
+      { name: 'Two Dimensional Motion', url: 'https://notebooklm.google.com/notebook/YOUR_ID' },
+      { name: 'Thermodynamics', url: 'https://notebooklm.google.com/notebook/YOUR_ID' },
+      { name: 'Force and Motion', url: 'https://notebooklm.google.com/notebook/YOUR_ID' },
+      { name: 'Circular Motion', url: 'https://notebooklm.google.com/notebook/YOUR_ID' },
+      { name: 'Energy and Momentum', url: 'https://notebooklm.google.com/notebook/YOUR_ID' },
+      { name: 'Gravity', url: 'https://notebooklm.google.com/notebook/YOUR_ID' },
+      { name: 'Geometric Optics', url: 'https://notebooklm.google.com/notebook/YOUR_ID' },
+
+
+
+    ]},
+    { label: 'General Science', items: [
+      { name: 'Scientific Process and Method', url: 'https://notebooklm.google.com/notebook/YOUR_ID' },
+      { name: 'Accuracy and Precision', url: 'https://notebooklm.google.com/notebook/YOUR_ID' },
+
+
+    ]},
+    
+    
+
+  ]
+},
+notebooklm_language: {
+  icon: '🔤', title: 'Language Proficiency — NotebookLM', eyebrow: 'NotebookLM · Language Notebooks',
+  notebookLm: 'https://notebooklm.google.com/',
+  type: 'links',
+  groups: [
+    { label: 'English', items: [
+      { name: 'Parts of Speech', url: 'https://notebooklm.google.com/notebook/YOUR_ID' },
+      { name: 'Grammar & Structure', url: 'https://notebooklm.google.com/notebook/YOUR_ID' },
+    ]},
+    { label: 'Filipino', items: [
+      { name: 'Bahagi ng Pananalita', url: 'https://notebooklm.google.com/notebook/YOUR_ID' },
+    ]},
+  ]
+},
+notebooklm_reading: {
+  icon: '📖', title: 'Reading Comprehension — NotebookLM', eyebrow: 'NotebookLM · Reading Notebooks',
+  notebookLm: 'https://notebooklm.google.com/',
+  type: 'links',
+  groups: [
+    { label: 'Text Types', items: [
+      { name: 'Poetry',             url: 'https://notebooklm.google.com/notebook/YOUR_ID' },
+      { name: 'Essays & Articles',  url: 'https://notebooklm.google.com/notebook/YOUR_ID' },
+      { name: 'Short Stories',      url: 'https://notebooklm.google.com/notebook/YOUR_ID' },
+    ]},
+  ]
+},
+
       arithmetic: {
         icon: '📘', title: 'Arithmetic', eyebrow: 'Mathematics · Subtest',
         notebookLm: 'https://notebooklm.google.com/',
@@ -1029,6 +1248,32 @@ function getPdfPath(topicKey, subtopicName) {
       return `https://www.youtube.com/results?search_query=${encodeURIComponent(topicTitle + ' ' + subtopicName + ' UPCAT review')}`;
     }
 
+    /* ── PDF FULLSCREEN ── */
+    const pdfFsOverlay  = document.getElementById('pdfFsOverlay');
+    const pdfFsFrame    = document.getElementById('pdfFsFrame');
+    const pdfFsTitle    = document.getElementById('pdfFsTitle');
+    const pdfFsOpenLink = document.getElementById('pdfFsOpenLink');
+    const pdfFsCloseBtn = document.getElementById('pdfFsCloseBtn');
+
+    function openPdfFullscreen(pdfPath, subtopicName) {
+      pdfFsFrame.src      = pdfPath;
+      pdfFsTitle.textContent = '📄 ' + subtopicName;
+      pdfFsOpenLink.href  = pdfPath;
+      pdfFsOverlay.classList.add('visible');
+      document.body.classList.add('panel-open');
+    }
+    function closePdfFullscreen() {
+      pdfFsOverlay.classList.remove('visible');
+      // small delay so animation plays before src clear
+      setTimeout(() => { pdfFsFrame.src = ''; }, 300);
+      document.body.classList.remove('panel-open');
+    }
+    pdfFsCloseBtn.addEventListener('click', closePdfFullscreen);
+    pdfFsOverlay.addEventListener('click', (e) => { if (e.target === pdfFsOverlay) closePdfFullscreen(); });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && pdfFsOverlay.classList.contains('visible')) closePdfFullscreen();
+    });
+
     function toggleSubtopicItem(item, topicKey, topicTitle, subtopicName) {
       const isExpanded = item.classList.contains('expanded');
       item.closest('.subtopic-list').querySelectorAll('.subtopic-item.expanded').forEach(el => {
@@ -1040,7 +1285,6 @@ function getPdfPath(topicKey, subtopicName) {
       const contentDiv = item.querySelector('.subtopic-content');
       if (contentDiv.dataset.loaded === 'true') return;
 
-      // Build the PDF path for this subtopic
       const pdfPath = getPdfPath(topicKey, subtopicName);
 
       contentDiv.innerHTML = `
@@ -1048,19 +1292,21 @@ function getPdfPath(topicKey, subtopicName) {
           <div class="pdf-viewer-label">
             <span>📄</span>
             <span>${subtopicName}</span>
-            <a class="pdf-open-link" href="${pdfPath}" target="_blank" rel="noopener noreferrer">Open in new tab ↗</a>
+            <div class="pdf-viewer-actions">
+              <button class="pdf-fullscreen-btn" type="button">⛶ Fullscreen</button>
+              <a class="pdf-open-link" href="${pdfPath}" target="_blank" rel="noopener noreferrer">Open in new tab ↗</a>
+            </div>
           </div>
-          <iframe
-            class="pdf-frame"
-            src="${pdfPath}"
-            title="${subtopicName} — PDF notes"
-            loading="lazy"
-          >
-            <p>Your browser can't display PDFs inline.
-              <a href="${pdfPath}" target="_blank" rel="noopener noreferrer">Click here to open the PDF.</a>
-            </p>
+          <iframe class="pdf-frame" src="${pdfPath}" title="${subtopicName} — PDF notes" loading="lazy">
+            <p>Your browser can't display PDFs inline. <a href="${pdfPath}" target="_blank" rel="noopener noreferrer">Click here to open the PDF.</a></p>
           </iframe>
         </div>`;
+
+      // Wire up fullscreen button
+      contentDiv.querySelector('.pdf-fullscreen-btn').addEventListener('click', () => {
+        openPdfFullscreen(pdfPath, subtopicName);
+      });
+
       contentDiv.dataset.loaded = 'true';
     }
 
@@ -1088,6 +1334,20 @@ function getPdfPath(topicKey, subtopicName) {
         listEl.className = 'subtopic-list';
 
         group.items.forEach(item => {
+          if (data.type === 'links') {
+    const linkEl = document.createElement('a');
+    linkEl.href = item.url;
+    linkEl.target = '_blank';
+    linkEl.rel = 'noopener noreferrer';
+    linkEl.className = 'subtopic-link-row';
+    linkEl.innerHTML = `
+      <span class="subtopic-name">📓 ${item.name}</span>
+      <span class="subtopic-link-btn">Open ↗</span>`;
+    listEl.appendChild(linkEl);
+    return;
+  }
+
+
           const itemEl = document.createElement('div');
           itemEl.className = 'subtopic-item';
 
@@ -1161,10 +1421,6 @@ function getPdfPath(topicKey, subtopicName) {
       panelOverlay.classList.remove('visible');
       document.body.classList.remove('panel-open');
     }
-    const PDF_PATH_OVERRIDES = {
-    "arithmetic::Order of Operations (PEMDAS)": "https://drive.google.com/file/d/1XPZctQn70jrQ1ms5M7zrfQtpj0WYsrkp/preview",
-    "biology::Cell Division": "https://drive.google.com/file/d/ANOTHER_ID/preview",
-    };
 
     document.querySelectorAll('[data-topic]').forEach(card => {
       card.addEventListener('click', () => openTopicPanel(card.dataset.topic));
