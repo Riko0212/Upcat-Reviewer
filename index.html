@@ -1164,6 +1164,10 @@ const PDF_PATH_OVERRIDES = {
       panelOverlay.classList.remove('visible');
       document.body.classList.remove('panel-open');
     }
+    const PDF_PATH_OVERRIDES = {
+    "arithmetic::Order of Operations (PEMDAS)": "https://drive.google.com/file/d/1XPZctQn70jrQ1ms5M7zrfQtpj0WYsrkp/preview?usp=sharing",
+    "biology::Cell Division": "https://drive.google.com/file/d/ANOTHER_ID/preview",
+    };
 
     document.querySelectorAll('[data-topic]').forEach(card => {
       card.addEventListener('click', () => openTopicPanel(card.dataset.topic));
